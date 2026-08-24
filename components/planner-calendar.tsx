@@ -97,8 +97,8 @@ export function PlannerCalendar({
       {isMonthReady && (
         <p className="rounded-lg border border-dashed bg-accent/30 p-3 text-sm text-muted-foreground">
           O relatório deste mês foi marcado como pronto e já está disponível
-          para ADM/MASTER. Os dias ficam bloqueados para edição — reabra o
-          mês acima se precisar corrigir algo.
+          para os administradores. Os dias ficam bloqueados para edição —
+          reabra o mês acima se precisar corrigir algo.
         </p>
       )}
       <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-muted-foreground">

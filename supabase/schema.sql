@@ -237,6 +237,9 @@ create policy "insert posts, admins only" on public.board_posts
 create policy "update posts, admins only" on public.board_posts
   for update using (public.current_user_role() in ('MASTER', 'ADM'));
 
+create policy "delete posts, admins only" on public.board_posts
+  for delete using (public.current_user_role() in ('MASTER', 'ADM'));
+
 create table public.board_comments (
   id uuid primary key default gen_random_uuid(),
   post_id uuid not null references public.board_posts(id) on delete cascade,
@@ -268,3 +271,9 @@ create policy "insert board images, admins only" on storage.objects
 
 create policy "read board images, any authenticated user" on storage.objects
   for select using (bucket_id = 'board-images' and auth.uid() is not null);
+
+create policy "delete board images, admins only" on storage.objects
+  for delete using (
+    bucket_id = 'board-images'
+    and public.current_user_role() in ('MASTER', 'ADM')
+  );

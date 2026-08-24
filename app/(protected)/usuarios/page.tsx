@@ -37,6 +37,7 @@ export default async function UsuariosPage() {
   const { data: users } = await supabase
     .from("profiles")
     .select("*")
+    .neq("role", "MASTER")
     .order("created_at", { ascending: false })
 
   return (

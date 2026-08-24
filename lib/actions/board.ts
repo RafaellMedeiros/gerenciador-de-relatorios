@@ -109,6 +109,34 @@ export async function updatePost(
   return undefined
 }
 
+export async function deletePost(
+  _prevState: BoardActionState,
+  formData: FormData
+): Promise<BoardActionState> {
+  const admin = await requireAdminProfile()
+  if ("error" in admin) return { error: admin.error }
+  const { supabase } = admin
+
+  const postId = formData.get("post_id") as string
+
+  const { data: post } = await supabase
+    .from("board_posts")
+    .select("image_path")
+    .eq("id", postId)
+    .single<{ image_path: string | null }>()
+
+  const { error } = await supabase.from("board_posts").delete().eq("id", postId)
+
+  if (error) return { error: error.message }
+
+  if (post?.image_path) {
+    await supabase.storage.from("board-images").remove([post.image_path])
+  }
+
+  revalidatePath("/home")
+  return undefined
+}
+
 export async function createComment(
   _prevState: BoardActionState,
   formData: FormData

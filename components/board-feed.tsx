@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useActionState } from "react"
 
-import { createComment, createPost, updatePost } from "@/lib/actions/board"
+import { createComment, createPost, deletePost, updatePost } from "@/lib/actions/board"
 import type { BoardComment, BoardPost } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
@@ -197,9 +197,12 @@ function PostCard({
           </p>
         </div>
         {canEdit && (
-          <Button variant="outline" size="sm" onClick={onEdit}>
-            Editar
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              Editar
+            </Button>
+            <DeletePostButton postId={post.id} />
+          </div>
         )}
       </div>
 
@@ -230,6 +233,26 @@ function PostCard({
         <CommentForm postId={post.id} />
       </div>
     </div>
+  )
+}
+
+function DeletePostButton({ postId }: { postId: string }) {
+  const [, formAction, pending] = useActionState(deletePost, undefined)
+
+  return (
+    <form
+      action={formAction}
+      onSubmit={(event) => {
+        if (!confirm("Excluir esta publicação? Esta ação não pode ser desfeita.")) {
+          event.preventDefault()
+        }
+      }}
+    >
+      <input type="hidden" name="post_id" value={postId} />
+      <Button type="submit" variant="outline" size="sm" disabled={pending}>
+        {pending ? "Excluindo..." : "Excluir"}
+      </Button>
+    </form>
   )
 }
 
