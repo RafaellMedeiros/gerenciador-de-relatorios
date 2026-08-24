@@ -2,7 +2,12 @@ import { redirect } from "next/navigation"
 
 import { PlannerCalendar } from "@/components/planner-calendar"
 import { createClient } from "@/lib/supabase/server"
-import type { PlannerEntry, PlannerMonthReport, Profile } from "@/lib/types"
+import type {
+  PlannerEntry,
+  PlannerMonthAttachment,
+  PlannerMonthReport,
+  Profile,
+} from "@/lib/types"
 
 function pad(n: number) {
   return String(n).padStart(2, "0")
@@ -33,24 +38,41 @@ export default async function PlannerPage() {
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
-  const [{ data: entries }, { data: monthReport }] = await Promise.all([
-    supabase
-      .from("planner_entries")
-      .select("*")
-      .gte("entry_date", toDateKey(firstDay))
-      .lte("entry_date", toDateKey(lastDay)),
-    supabase
-      .from("planner_month_reports")
-      .select("*")
-      .eq("period", toDateKey(firstDay))
-      .maybeSingle<PlannerMonthReport>(),
-  ])
+  const [{ data: entries }, { data: monthReport }, { data: attachments }] =
+    await Promise.all([
+      supabase
+        .from("planner_entries")
+        .select("*")
+        .gte("entry_date", toDateKey(firstDay))
+        .lte("entry_date", toDateKey(lastDay)),
+      supabase
+        .from("planner_month_reports")
+        .select("*")
+        .eq("period", toDateKey(firstDay))
+        .maybeSingle<PlannerMonthReport>(),
+      supabase
+        .from("planner_month_attachments")
+        .select("*")
+        .eq("period", toDateKey(firstDay))
+        .order("created_at", { ascending: true }),
+    ])
 
   const entriesByDate = Object.fromEntries(
     ((entries as PlannerEntry[] | null) ?? []).map((entry) => [
       entry.entry_date,
       entry,
     ])
+  )
+
+  const attachmentsWithUrl = await Promise.all(
+    ((attachments as PlannerMonthAttachment[] | null) ?? []).map(
+      async (attachment) => {
+        const { data: signed } = await supabase.storage
+          .from("planner-attachments")
+          .createSignedUrl(attachment.image_path, 3600)
+        return { ...attachment, imageUrl: signed?.signedUrl ?? null }
+      }
+    )
   )
 
   return (
@@ -64,6 +86,12 @@ export default async function PlannerPage() {
       <PlannerCalendar
         entriesByDate={entriesByDate}
         monthStatus={monthReport?.status ?? "draft"}
+        monthDetails={{
+          planejamento: monthReport?.planejamento ?? null,
+          licoes_aprendidas: monthReport?.licoes_aprendidas ?? null,
+          proximos_passos: monthReport?.proximos_passos ?? null,
+        }}
+        attachments={attachmentsWithUrl}
       />
     </div>
   )

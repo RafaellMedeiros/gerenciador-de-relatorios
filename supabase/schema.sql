@@ -54,11 +54,8 @@ create table public.planner_entries (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
   entry_date date not null,
-  dificuldades text,
-  atividades text,
-  ensinamentos text,
-  proximas_acoes text,
-  visitas_realizadas text,
+  atividades_manha text,
+  atividades_tarde text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, entry_date)
@@ -94,6 +91,9 @@ create table public.planner_month_reports (
   period date not null, -- first day of the month, e.g. 2026-08-01
   status text not null default 'draft' check (status in ('draft', 'ready')),
   marked_ready_at timestamptz,
+  planejamento text,
+  licoes_aprendidas text,
+  proximos_passos text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, period)
@@ -132,6 +132,86 @@ create policy "select planner entries for ready month reports, admins" on public
         and r.status = 'ready'
         and date_trunc('month', r.period) = date_trunc('month', planner_entries.entry_date)
     )
+  );
+
+-- Planner: images attached to the month as a whole (not tied to a single
+-- day), each with a caption.
+
+create table public.planner_month_attachments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  period date not null, -- first day of the month, e.g. 2026-08-01
+  image_path text not null,
+  caption text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.planner_month_attachments enable row level security;
+
+create policy "select own month attachments" on public.planner_month_attachments
+  for select using (auth.uid() = user_id);
+
+create policy "select month attachments for ready reports, admins" on public.planner_month_attachments
+  for select using (
+    public.current_user_role() in ('MASTER', 'ADM')
+    and exists (
+      select 1 from public.planner_month_reports r
+      where r.user_id = planner_month_attachments.user_id
+        and r.status = 'ready'
+        and r.period = planner_month_attachments.period
+    )
+  );
+
+create policy "insert own month attachments, current month only" on public.planner_month_attachments
+  for insert with check (
+    auth.uid() = user_id
+    and date_trunc('month', period) = date_trunc('month', now())
+  );
+
+create policy "delete own month attachments, current month only" on public.planner_month_attachments
+  for delete using (
+    auth.uid() = user_id
+    and date_trunc('month', period) = date_trunc('month', now())
+  );
+
+-- Storage bucket for planner month attachments. Objects are stored under
+-- `<user_id>/<period>/<filename>` so storage-level RLS can mirror the table
+-- policies above without a join.
+
+insert into storage.buckets (id, name, public)
+values ('planner-attachments', 'planner-attachments', false)
+on conflict (id) do nothing;
+
+create policy "insert own planner attachments, current month only" on storage.objects
+  for insert with check (
+    bucket_id = 'planner-attachments'
+    and auth.uid()::text = (storage.foldername(name))[1]
+    and date_trunc('month', ((storage.foldername(name))[2])::date) = date_trunc('month', now())
+  );
+
+create policy "select own planner attachments" on storage.objects
+  for select using (
+    bucket_id = 'planner-attachments'
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "select planner attachments for ready reports, admins" on storage.objects
+  for select using (
+    bucket_id = 'planner-attachments'
+    and public.current_user_role() in ('MASTER', 'ADM')
+    and exists (
+      select 1 from public.planner_month_reports r
+      where r.user_id::text = (storage.foldername(name))[1]
+        and r.status = 'ready'
+        and r.period = ((storage.foldername(name))[2])::date
+    )
+  );
+
+create policy "delete own planner attachments, current month only" on storage.objects
+  for delete using (
+    bucket_id = 'planner-attachments'
+    and auth.uid()::text = (storage.foldername(name))[1]
+    and date_trunc('month', ((storage.foldername(name))[2])::date) = date_trunc('month', now())
   );
 
 -- Home board: posts by MASTER/ADM, commentable by anyone.

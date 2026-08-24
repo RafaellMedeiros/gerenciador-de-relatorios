@@ -3,8 +3,14 @@
 import { useEffect, useRef, useState } from "react"
 import { useActionState } from "react"
 
-import { setMonthReportStatus, upsertPlannerEntry } from "@/lib/actions/planner"
-import type { PlannerEntry, ReportStatus } from "@/lib/types"
+import {
+  addMonthAttachment,
+  deleteMonthAttachment,
+  setMonthReportStatus,
+  upsertMonthDetails,
+  upsertPlannerEntry,
+} from "@/lib/actions/planner"
+import type { PlannerEntry, PlannerMonthAttachment, ReportStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,26 +21,31 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
 const WEEKDAY_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 
 const FIELDS: { name: keyof PlannerFields; label: string }[] = [
-  { name: "dificuldades", label: "Dificuldades encontradas" },
-  { name: "atividades", label: "Atividades realizadas" },
-  { name: "ensinamentos", label: "Ensinamentos adquiridos" },
-  { name: "proximas_acoes", label: "Próximas ações" },
-  { name: "visitas_realizadas", label: "Visitas realizadas" },
+  { name: "atividades_manha", label: "Atividades realizadas pela manhã" },
+  { name: "atividades_tarde", label: "Atividades realizadas à tarde" },
 ]
 
-type PlannerFields = Pick<
-  PlannerEntry,
-  | "dificuldades"
-  | "atividades"
-  | "ensinamentos"
-  | "proximas_acoes"
-  | "visitas_realizadas"
->
+const MONTH_DETAIL_FIELDS: { name: keyof MonthDetailFields; label: string }[] = [
+  { name: "planejamento", label: "Planejamento" },
+  { name: "licoes_aprendidas", label: "Lições aprendidas" },
+  { name: "proximos_passos", label: "Próximos passos" },
+]
+
+type PlannerFields = Pick<PlannerEntry, "atividades_manha" | "atividades_tarde">
+
+type MonthDetailFields = {
+  planejamento: string | null
+  licoes_aprendidas: string | null
+  proximos_passos: string | null
+}
+
+type MonthAttachmentWithUrl = PlannerMonthAttachment & { imageUrl: string | null }
 
 function pad(n: number) {
   return String(n).padStart(2, "0")
@@ -47,9 +58,13 @@ function toDateKey(date: Date) {
 export function PlannerCalendar({
   entriesByDate,
   monthStatus,
+  monthDetails,
+  attachments,
 }: {
   entriesByDate: Record<string, PlannerEntry>
   monthStatus: ReportStatus
+  monthDetails: MonthDetailFields
+  attachments: MonthAttachmentWithUrl[]
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const isMonthReady = monthStatus === "ready"
@@ -122,6 +137,9 @@ export function PlannerCalendar({
           )
         })}
       </div>
+
+      <MonthDetailsForm monthDetails={monthDetails} locked={isMonthReady} />
+      <MonthAttachments attachments={attachments} locked={isMonthReady} />
 
       <Dialog
         open={selectedDate !== null}
@@ -230,6 +248,151 @@ function MonthStatusControl({ monthStatus }: { monthStatus: ReportStatus }) {
           : isReady
             ? "Mês entregue ✓ — reabrir"
             : "Marcar mês como pronto"}
+      </Button>
+    </form>
+  )
+}
+
+function MonthDetailsForm({
+  monthDetails,
+  locked,
+}: {
+  monthDetails: MonthDetailFields
+  locked: boolean
+}) {
+  const [state, formAction, pending] = useActionState(
+    upsertMonthDetails,
+    undefined
+  )
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border bg-card p-4">
+      <h3 className="text-sm font-medium text-foreground">Resumo do mês</h3>
+      <form action={formAction}>
+        <FieldGroup>
+          {MONTH_DETAIL_FIELDS.map(({ name, label }) => (
+            <Field key={name}>
+              <FieldLabel htmlFor={name}>{label}</FieldLabel>
+              <Textarea
+                id={name}
+                name={name}
+                defaultValue={monthDetails[name] ?? ""}
+                disabled={locked}
+              />
+            </Field>
+          ))}
+          {!locked && (
+            <Field>
+              <FieldError
+                errors={state?.error ? [{ message: state.error }] : undefined}
+              />
+              <Button type="submit" disabled={pending}>
+                {pending ? "Salvando..." : "Salvar"}
+              </Button>
+            </Field>
+          )}
+        </FieldGroup>
+      </form>
+    </div>
+  )
+}
+
+function MonthAttachments({
+  attachments,
+  locked,
+}: {
+  attachments: MonthAttachmentWithUrl[]
+  locked: boolean
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border bg-card p-4">
+      <h3 className="text-sm font-medium text-foreground">Imagens do mês</h3>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {attachments.map((attachment) => (
+          <div key={attachment.id} className="flex flex-col gap-1.5">
+            {attachment.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={attachment.imageUrl}
+                alt=""
+                className="aspect-square w-full rounded-lg object-cover"
+              />
+            )}
+            {attachment.caption && (
+              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                {attachment.caption}
+              </p>
+            )}
+            {!locked && (
+              <DeleteAttachmentButton attachmentId={attachment.id} />
+            )}
+          </div>
+        ))}
+        {!attachments.length && (
+          <p className="col-span-full text-sm text-muted-foreground">
+            Nenhuma imagem anexada neste mês.
+          </p>
+        )}
+      </div>
+      {!locked && <AddAttachmentForm />}
+    </div>
+  )
+}
+
+function AddAttachmentForm() {
+  const [state, formAction, pending] = useActionState(
+    addMonthAttachment,
+    undefined
+  )
+  const formRef = useRef<HTMLFormElement>(null)
+  const wasPending = useRef(false)
+
+  useEffect(() => {
+    if (wasPending.current && !pending && !state?.error) {
+      formRef.current?.reset()
+    }
+    wasPending.current = pending
+  }, [pending, state])
+
+  return (
+    <form
+      ref={formRef}
+      action={formAction}
+      className="flex flex-col gap-2 border-t pt-3"
+    >
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="image">Imagem</FieldLabel>
+          <Input id="image" name="image" type="file" accept="image/*" required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="caption">Legenda</FieldLabel>
+          <Textarea id="caption" name="caption" />
+        </Field>
+        <Field>
+          <FieldError
+            errors={state?.error ? [{ message: state.error }] : undefined}
+          />
+          <Button type="submit" disabled={pending}>
+            {pending ? "Enviando..." : "Adicionar imagem"}
+          </Button>
+        </Field>
+      </FieldGroup>
+    </form>
+  )
+}
+
+function DeleteAttachmentButton({ attachmentId }: { attachmentId: string }) {
+  const [, formAction, pending] = useActionState(
+    deleteMonthAttachment,
+    undefined
+  )
+
+  return (
+    <form action={formAction}>
+      <input type="hidden" name="attachment_id" value={attachmentId} />
+      <Button type="submit" variant="outline" size="sm" disabled={pending}>
+        {pending ? "Removendo..." : "Remover"}
       </Button>
     </form>
   )

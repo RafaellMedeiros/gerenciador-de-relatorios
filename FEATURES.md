@@ -22,16 +22,18 @@
 ## Planner
 
 - **Status**: concluído
-- **Descrição**: aba com um calendário em tela cheia onde o COLABORADOR registra suas atividades diárias. Ao clicar em uma data, abre o preenchimento do dia.
+- **Descrição**: aba com um calendário em tela cheia onde o COLABORADOR registra suas atividades diárias. Ao clicar em uma data, abre o preenchimento do dia. Além dos dias, o mês como um todo tem seus próprios campos e imagens anexadas.
 - **Regras de negócio**:
   - Campos preenchidos por dia (todos em texto livre):
-    - Dificuldades encontradas
-    - Atividades realizadas
-    - Ensinamentos adquiridos
-    - Próximas ações
-    - Visitas realizadas
-  - O COLABORADOR pode editar livremente os dias do **mês corrente**.
-  - Ao virar o mês, os dias daquele mês **travam** e não podem mais ser editados.
+    - Atividades realizadas pela manhã
+    - Atividades realizadas à tarde
+  - Campos preenchidos por mês, não vinculados a um dia específico (todos em texto livre):
+    - Planejamento
+    - Lições aprendidas
+    - Próximos passos
+  - O mês também permite anexar **imagens com legenda**, sem vínculo a um dia específico.
+  - O COLABORADOR pode editar livremente os dias e os campos/imagens do **mês corrente**.
+  - Ao virar o mês, os dias e os campos/imagens daquele mês **travam** e não podem mais ser editados.
   - Dias sem preenchimento (falta, folga, fim de semana etc.) simplesmente ficam vazios no relatório — não exigem justificativa.
 
 ## Relatório Mensal

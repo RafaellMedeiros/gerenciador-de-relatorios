@@ -1,14 +1,22 @@
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
-import type { PlannerEntry, PlannerMonthReport, Profile } from "@/lib/types"
+import type {
+  PlannerEntry,
+  PlannerMonthAttachment,
+  PlannerMonthReport,
+  Profile,
+} from "@/lib/types"
 
 const FIELDS: { name: keyof PlannerEntry; label: string }[] = [
-  { name: "dificuldades", label: "Dificuldades encontradas" },
-  { name: "atividades", label: "Atividades realizadas" },
-  { name: "ensinamentos", label: "Ensinamentos adquiridos" },
-  { name: "proximas_acoes", label: "Próximas ações" },
-  { name: "visitas_realizadas", label: "Visitas realizadas" },
+  { name: "atividades_manha", label: "Atividades realizadas pela manhã" },
+  { name: "atividades_tarde", label: "Atividades realizadas à tarde" },
+]
+
+const MONTH_DETAIL_FIELDS: { name: keyof PlannerMonthReport; label: string }[] = [
+  { name: "planejamento", label: "Planejamento" },
+  { name: "licoes_aprendidas", label: "Lições aprendidas" },
+  { name: "proximos_passos", label: "Próximos passos" },
 ]
 
 function formatMonth(period: string) {
@@ -70,17 +78,41 @@ export default async function ReportsPage() {
   )
 
   const entriesByReportId = new Map<string, PlannerEntry[]>()
+  const attachmentsByReportId = new Map<
+    string,
+    (PlannerMonthAttachment & { imageUrl: string | null })[]
+  >()
   await Promise.all(
     readyReports.map(async (report) => {
-      const { data: entries } = await supabase
-        .from("planner_entries")
-        .select("*")
-        .eq("user_id", report.user_id)
-        .gte("entry_date", report.period)
-        .lte("entry_date", lastDayOfPeriod(report.period))
-        .order("entry_date", { ascending: true })
+      const [{ data: entries }, { data: attachments }] = await Promise.all([
+        supabase
+          .from("planner_entries")
+          .select("*")
+          .eq("user_id", report.user_id)
+          .gte("entry_date", report.period)
+          .lte("entry_date", lastDayOfPeriod(report.period))
+          .order("entry_date", { ascending: true }),
+        supabase
+          .from("planner_month_attachments")
+          .select("*")
+          .eq("user_id", report.user_id)
+          .eq("period", report.period)
+          .order("created_at", { ascending: true }),
+      ])
 
       entriesByReportId.set(report.id, (entries as PlannerEntry[] | null) ?? [])
+
+      const attachmentsWithUrl = await Promise.all(
+        ((attachments as PlannerMonthAttachment[] | null) ?? []).map(
+          async (attachment) => {
+            const { data: signed } = await supabase.storage
+              .from("planner-attachments")
+              .createSignedUrl(attachment.image_path, 3600)
+            return { ...attachment, imageUrl: signed?.signedUrl ?? null }
+          }
+        )
+      )
+      attachmentsByReportId.set(report.id, attachmentsWithUrl)
     })
   )
 
@@ -95,6 +127,7 @@ export default async function ReportsPage() {
       <ul className="flex flex-col gap-4">
         {readyReports.map((report) => {
           const entries = entriesByReportId.get(report.id) ?? []
+          const attachments = attachmentsByReportId.get(report.id) ?? []
           return (
             <li key={report.id} className="rounded-lg border bg-card p-4">
               <div className="flex items-baseline justify-between gap-2">
@@ -108,6 +141,42 @@ export default async function ReportsPage() {
               <p className="mt-0.5 text-xs font-medium text-green-600">
                 Pronto
               </p>
+
+              <dl className="mt-3 flex flex-col gap-2 border-t pt-3">
+                {MONTH_DETAIL_FIELDS.map(({ name, label }) =>
+                  report[name] ? (
+                    <div key={name}>
+                      <dt className="text-xs text-muted-foreground">{label}</dt>
+                      <dd className="text-sm text-foreground whitespace-pre-wrap">
+                        {report[name] as string}
+                      </dd>
+                    </div>
+                  ) : null
+                )}
+              </dl>
+
+              {attachments.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-3 border-t pt-3 sm:grid-cols-3">
+                  {attachments.map((attachment) => (
+                    <div key={attachment.id} className="flex flex-col gap-1.5">
+                      {attachment.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={attachment.imageUrl}
+                          alt=""
+                          className="aspect-square w-full rounded-lg object-cover"
+                        />
+                      )}
+                      {attachment.caption && (
+                        <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                          {attachment.caption}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="mt-3 flex flex-col gap-3 border-t pt-3">
                 {entries.map((entry) => (
                   <div key={entry.id}>
