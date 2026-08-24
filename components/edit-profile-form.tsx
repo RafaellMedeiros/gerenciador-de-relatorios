@@ -2,6 +2,8 @@
 
 import { useActionState } from "react"
 
+import { CheckCircle, FloppyDisk, UserCircle } from "@phosphor-icons/react"
+
 import { updateProfile } from "@/lib/actions/profile"
 import type { Profile } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -29,7 +31,10 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dados pessoais</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <UserCircle className="size-4.5 text-primary" />
+          Dados pessoais
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form action={formAction}>
@@ -76,11 +81,13 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
                 errors={state?.error ? [{ message: state.error }] : undefined}
               />
               {state?.success && (
-                <p className="text-sm font-normal text-primary">
+                <p className="flex items-center gap-1.5 text-sm font-normal text-primary">
+                  <CheckCircle className="size-4" weight="fill" />
                   Perfil atualizado com sucesso.
                 </p>
               )}
               <Button type="submit" disabled={pending}>
+                <FloppyDisk data-icon="inline-start" />
                 {pending ? "Salvando..." : "Salvar alterações"}
               </Button>
             </Field>

@@ -4,6 +4,17 @@ import { useEffect, useRef, useState } from "react"
 import { useActionState } from "react"
 
 import {
+  ArrowCounterClockwise,
+  CalendarBlank,
+  CheckCircle,
+  FloppyDisk,
+  ImageSquare,
+  NotePencil,
+  Plus,
+  Trash,
+} from "@phosphor-icons/react"
+
+import {
   addMonthAttachment,
   deleteMonthAttachment,
   setMonthReportStatus,
@@ -89,7 +100,8 @@ export function PlannerCalendar({
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-medium text-foreground capitalize">
+        <h2 className="flex items-center gap-1.5 text-sm font-medium text-foreground capitalize">
+          <CalendarBlank className="size-4 text-primary" />
           {monthLabel}
         </h2>
         <MonthStatusControl monthStatus={monthStatus} />
@@ -222,6 +234,7 @@ function PlannerEntryForm({
                 errors={state?.error ? [{ message: state.error }] : undefined}
               />
               <Button type="submit" disabled={pending}>
+                <FloppyDisk data-icon="inline-start" />
                 {pending ? "Salvando..." : "Salvar"}
               </Button>
             </Field>
@@ -243,10 +256,15 @@ function MonthStatusControl({ monthStatus }: { monthStatus: ReportStatus }) {
     <form action={formAction}>
       <input type="hidden" name="status" value={isReady ? "draft" : "ready"} />
       <Button type="submit" variant={isReady ? "outline" : "default"} disabled={pending}>
+        {isReady ? (
+          <ArrowCounterClockwise data-icon="inline-start" />
+        ) : (
+          <CheckCircle data-icon="inline-start" />
+        )}
         {pending
           ? "Salvando..."
           : isReady
-            ? "Mês entregue ✓ — reabrir"
+            ? "Mês entregue — reabrir"
             : "Marcar mês como pronto"}
       </Button>
     </form>
@@ -267,7 +285,10 @@ function MonthDetailsForm({
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border bg-card p-4">
-      <h3 className="text-sm font-medium text-foreground">Resumo do mês</h3>
+      <h3 className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+        <NotePencil className="size-4 text-primary" />
+        Resumo do mês
+      </h3>
       <form action={formAction}>
         <FieldGroup>
           {MONTH_DETAIL_FIELDS.map(({ name, label }) => (
@@ -287,6 +308,7 @@ function MonthDetailsForm({
                 errors={state?.error ? [{ message: state.error }] : undefined}
               />
               <Button type="submit" disabled={pending}>
+                <FloppyDisk data-icon="inline-start" />
                 {pending ? "Salvando..." : "Salvar"}
               </Button>
             </Field>
@@ -306,7 +328,10 @@ function MonthAttachments({
 }) {
   return (
     <div className="flex flex-col gap-3 rounded-lg border bg-card p-4">
-      <h3 className="text-sm font-medium text-foreground">Imagens do mês</h3>
+      <h3 className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+        <ImageSquare className="size-4 text-primary" />
+        Imagens do mês
+      </h3>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {attachments.map((attachment) => (
           <div key={attachment.id} className="flex flex-col gap-1.5">
@@ -374,6 +399,7 @@ function AddAttachmentForm() {
             errors={state?.error ? [{ message: state.error }] : undefined}
           />
           <Button type="submit" disabled={pending}>
+            <Plus data-icon="inline-start" />
             {pending ? "Enviando..." : "Adicionar imagem"}
           </Button>
         </Field>
@@ -392,6 +418,7 @@ function DeleteAttachmentButton({ attachmentId }: { attachmentId: string }) {
     <form action={formAction}>
       <input type="hidden" name="attachment_id" value={attachmentId} />
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
+        <Trash data-icon="inline-start" />
         {pending ? "Removendo..." : "Remover"}
       </Button>
     </form>

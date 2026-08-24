@@ -3,6 +3,14 @@
 import { useEffect, useRef, useState } from "react"
 import { useActionState } from "react"
 
+import {
+  ChatCircleText,
+  PaperPlaneTilt,
+  PencilSimple,
+  Plus,
+  Trash,
+} from "@phosphor-icons/react"
+
 import { createComment, createPost, deletePost, updatePost } from "@/lib/actions/board"
 import type { BoardComment, BoardPost } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -61,7 +69,10 @@ export function BoardFeed({
     <div className="flex flex-col gap-6">
       {canPost && (
         <div>
-          <Button onClick={() => setCreateOpen(true)}>Novo post</Button>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus data-icon="inline-start" />
+            Novo post
+          </Button>
         </div>
       )}
 
@@ -75,7 +86,8 @@ export function BoardFeed({
           />
         ))}
         {!posts.length && (
-          <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+          <p className="flex items-center gap-2 rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+            <ChatCircleText className="size-4" />
             Nenhuma publicação ainda.
           </p>
         )}
@@ -131,6 +143,7 @@ function CreatePostForm({ onSuccess }: { onSuccess: () => void }) {
             errors={state?.error ? [{ message: state.error }] : undefined}
           />
           <Button type="submit" disabled={pending}>
+            <Plus data-icon="inline-start" />
             {pending ? "Publicando..." : "Publicar"}
           </Button>
         </Field>
@@ -168,6 +181,7 @@ function EditPostForm({
             errors={state?.error ? [{ message: state.error }] : undefined}
           />
           <Button type="submit" disabled={pending}>
+            <PencilSimple data-icon="inline-start" />
             {pending ? "Salvando..." : "Salvar"}
           </Button>
         </Field>
@@ -199,6 +213,7 @@ function PostCard({
         {canEdit && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={onEdit}>
+              <PencilSimple data-icon="inline-start" />
               Editar
             </Button>
             <DeletePostButton postId={post.id} />
@@ -222,6 +237,12 @@ function PostCard({
       )}
 
       <div className="flex flex-col gap-2 border-t pt-3">
+        {post.comments.length > 0 && (
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <ChatCircleText className="size-3.5" />
+            {post.comments.length} comentário{post.comments.length > 1 ? "s" : ""}
+          </p>
+        )}
         {post.comments.map((comment) => (
           <div key={comment.id} className="text-sm">
             <span className="font-medium text-foreground">
@@ -250,6 +271,7 @@ function DeletePostButton({ postId }: { postId: string }) {
     >
       <input type="hidden" name="post_id" value={postId} />
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
+        <Trash data-icon="inline-start" />
         {pending ? "Excluindo..." : "Excluir"}
       </Button>
     </form>
@@ -271,8 +293,8 @@ function CommentForm({ postId }: { postId: string }) {
           className="min-h-9"
           required
         />
-        <Button type="submit" variant="outline" disabled={pending}>
-          {pending ? "..." : "Comentar"}
+        <Button type="submit" variant="outline" size="icon" disabled={pending}>
+          <PaperPlaneTilt />
         </Button>
       </div>
       <FieldError

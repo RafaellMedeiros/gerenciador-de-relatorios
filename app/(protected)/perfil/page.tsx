@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
 
+import { UserCircle } from "@phosphor-icons/react/ssr"
+
 import { EditProfileForm } from "@/components/edit-profile-form"
 import { createClient } from "@/lib/supabase/server"
 import type { Profile } from "@/lib/types"
@@ -24,7 +26,10 @@ export default async function PerfilPage() {
   return (
     <div className="mx-auto flex max-w-sm flex-col gap-8">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Meu Perfil</h1>
+        <h1 className="flex items-center gap-2 text-xl font-semibold text-foreground">
+          <UserCircle className="size-5 text-primary" />
+          Meu Perfil
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Mantenha seus dados atualizados — essas informações são usadas nos
           relatórios.

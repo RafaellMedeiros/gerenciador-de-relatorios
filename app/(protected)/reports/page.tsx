@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
 
+import { CalendarBlank, CheckCircle, FileText } from "@phosphor-icons/react/ssr"
+
 import { createClient } from "@/lib/supabase/server"
 import type {
   PlannerEntry,
@@ -119,7 +121,10 @@ export default async function ReportsPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Relatórios</h1>
+        <h1 className="flex items-center gap-2 text-xl font-semibold text-foreground">
+          <FileText className="size-5 text-primary" />
+          Relatórios
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Relatórios mensais que os colaboradores marcaram como prontos.
         </p>
@@ -134,11 +139,13 @@ export default async function ReportsPage() {
                 <p className="font-medium text-foreground">
                   Relatório de {authorNameById.get(report.user_id) ?? "Usuário"}
                 </p>
-                <p className="text-xs capitalize text-muted-foreground">
+                <p className="flex items-center gap-1 text-xs capitalize text-muted-foreground">
+                  <CalendarBlank className="size-3.5" />
                   {formatMonth(report.period)}
                 </p>
               </div>
-              <p className="mt-0.5 text-xs font-medium text-green-600">
+              <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-green-600">
+                <CheckCircle className="size-3.5" weight="fill" />
                 Pronto
               </p>
 

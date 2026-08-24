@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
 
+import { Users } from "@phosphor-icons/react/ssr"
+
 import { CreateUserForm } from "@/components/create-user-form"
 import { createClient } from "@/lib/supabase/server"
 import type { Profile, UserRole } from "@/lib/types"
@@ -43,7 +45,10 @@ export default async function UsuariosPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Usuários</h1>
+        <h1 className="flex items-center gap-2 text-xl font-semibold text-foreground">
+          <Users className="size-5 text-primary" />
+          Usuários
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Gerencie as contas de administradores e colaboradores do sistema.
         </p>

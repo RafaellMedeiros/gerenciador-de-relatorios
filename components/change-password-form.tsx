@@ -2,6 +2,8 @@
 
 import { useActionState } from "react"
 
+import { FloppyDisk, LockKeyOpen } from "@phosphor-icons/react"
+
 import { changePassword } from "@/lib/actions/auth"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,7 +22,10 @@ export function ChangePasswordForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Defina sua nova senha</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <LockKeyOpen className="size-4.5 text-primary" />
+          Defina sua nova senha
+        </CardTitle>
         <CardDescription>
           Esta é sua senha provisória. Defina uma nova senha para continuar.
         </CardDescription>
@@ -55,6 +60,7 @@ export function ChangePasswordForm() {
                 errors={state?.error ? [{ message: state.error }] : undefined}
               />
               <Button type="submit" disabled={pending}>
+                <FloppyDisk data-icon="inline-start" />
                 {pending ? "Salvando..." : "Salvar senha"}
               </Button>
             </Field>

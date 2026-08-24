@@ -2,6 +2,8 @@
 
 import { useActionState } from "react"
 
+import { UserPlus } from "@phosphor-icons/react"
+
 import { createUser } from "@/lib/actions/users"
 import type { UserRole } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -77,6 +79,7 @@ export function CreateUserForm({
             errors={state?.error ? [{ message: state.error }] : undefined}
           />
           <Button type="submit" disabled={pending}>
+            <UserPlus data-icon="inline-start" />
             {pending ? "Criando..." : "Criar usuário"}
           </Button>
         </Field>

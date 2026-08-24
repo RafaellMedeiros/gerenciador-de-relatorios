@@ -1,4 +1,12 @@
-import { CircleUserRound, HeartPulse } from "lucide-react"
+import {
+  CalendarBlank,
+  FileText,
+  Heartbeat,
+  House,
+  SignOut,
+  UserCircle,
+  Users,
+} from "@phosphor-icons/react/ssr"
 
 import { logout } from "@/lib/actions/auth"
 import type { UserRole } from "@/lib/types"
@@ -19,28 +27,32 @@ export function SiteHeader({
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <HeartPulse className="size-4.5" />
+              <Heartbeat className="size-4.5" weight="fill" />
             </span>
             <span className="text-sm font-medium text-foreground">
               Gerenciador de Relatórios
             </span>
           </div>
           <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-            <a href="/home" className="hover:text-foreground">
+            <a href="/home" className="flex items-center gap-1.5 hover:text-foreground">
+              <House className="size-4" />
               Home
             </a>
             {canManageUsers && (
-              <a href="/reports" className="hover:text-foreground">
+              <a href="/reports" className="flex items-center gap-1.5 hover:text-foreground">
+                <FileText className="size-4" />
                 Relatórios
               </a>
             )}
             {role === "COLABORADOR" && (
-              <a href="/planner" className="hover:text-foreground">
+              <a href="/planner" className="flex items-center gap-1.5 hover:text-foreground">
+                <CalendarBlank className="size-4" />
                 Planner
               </a>
             )}
             {canManageUsers && (
-              <a href="/usuarios" className="hover:text-foreground">
+              <a href="/usuarios" className="flex items-center gap-1.5 hover:text-foreground">
+                <Users className="size-4" />
                 Usuários
               </a>
             )}
@@ -52,12 +64,13 @@ export function SiteHeader({
               href="/perfil"
               className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent/40"
             >
-              <CircleUserRound className="size-4.5 text-primary" />
+              <UserCircle className="size-4.5 text-primary" />
               {fullName}
             </a>
           )}
           <form action={logout}>
             <Button variant="outline" type="submit">
+              <SignOut data-icon="inline-start" />
               Sair
             </Button>
           </form>

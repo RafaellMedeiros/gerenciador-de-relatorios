@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
 
+import { House } from "@phosphor-icons/react/ssr"
+
 import { BoardFeed } from "@/components/board-feed"
 import { createClient } from "@/lib/supabase/server"
 import type { BoardComment, BoardPost, Profile } from "@/lib/types"
@@ -58,7 +60,10 @@ export default async function HomePage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Home</h1>
+        <h1 className="flex items-center gap-2 text-xl font-semibold text-foreground">
+          <House className="size-5 text-primary" />
+          Home
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Avisos e publicações do sistema.
         </p>

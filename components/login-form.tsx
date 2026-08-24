@@ -2,6 +2,8 @@
 
 import { useActionState } from "react"
 
+import { LockKey, SignIn } from "@phosphor-icons/react"
+
 import { login } from "@/app/login/actions"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -25,7 +27,10 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <LockKey className="size-4.5 text-primary" />
+            Login to your account
+          </CardTitle>
           <CardDescription>
             Enter your email below to login to your account
           </CardDescription>
@@ -60,6 +65,7 @@ export function LoginForm({
                   errors={state?.error ? [{ message: state.error }] : undefined}
                 />
                 <Button type="submit" disabled={pending}>
+                  <SignIn data-icon="inline-start" />
                   {pending ? "Logging in..." : "Login"}
                 </Button>
               </Field>
