@@ -69,3 +69,28 @@ export interface PlannerMonthAttachment {
   caption: string | null
   created_at: string
 }
+
+// Per-colaborador status for the current month, as returned by the
+// month_report_progress() database function — see supabase/schema.sql.
+export type ColaboradorReportStatus = "not_started" | "started" | "ready"
+
+export interface MonthReportProgressRow {
+  user_id: string
+  full_name: string
+  status: ColaboradorReportStatus
+  marked_ready_at: string | null
+  last_activity_at: string | null
+}
+
+// Everything the Relatórios screen needs for one colaborador's row + modal.
+// entries/attachments/report stay empty unless status is "ready" — RLS only
+// exposes that content once the month report is marked ready.
+export interface ColaboradorReportSummary {
+  userId: string
+  fullName: string
+  status: ColaboradorReportStatus
+  statusDate: string | null
+  report: PlannerMonthReport | null
+  entries: PlannerEntry[]
+  attachments: (PlannerMonthAttachment & { imageUrl: string | null })[]
+}

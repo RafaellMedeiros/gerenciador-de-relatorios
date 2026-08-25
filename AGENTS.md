@@ -4,7 +4,7 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-# Project: Gerenciador de Relatórios
+# Project: SIGESS (Sistema Integrado de Gestão em Saúde)
 
 A report manager backed by Supabase (Auth, Postgres database, Storage).
 

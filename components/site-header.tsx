@@ -2,7 +2,6 @@ import {
   CalendarBlank,
   FileText,
   Heartbeat,
-  House,
   SignOut,
   UserCircle,
   Users,
@@ -25,19 +24,19 @@ export function SiteHeader({
     <header className="border-b bg-card px-6 py-3.5">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2.5">
+          <a
+            href="/home"
+            className="flex items-center gap-2.5"
+            title="Sistema Integrado de Gestão em Saúde"
+          >
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Heartbeat className="size-4.5" weight="fill" />
             </span>
             <span className="text-sm font-medium text-foreground">
-              Gerenciador de Relatórios
+              SIGESS
             </span>
-          </div>
+          </a>
           <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-            <a href="/home" className="flex items-center gap-1.5 hover:text-foreground">
-              <House className="size-4" />
-              Home
-            </a>
             {canManageUsers && (
               <a href="/reports" className="flex items-center gap-1.5 hover:text-foreground">
                 <FileText className="size-4" />
