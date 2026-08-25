@@ -151,68 +151,100 @@ export function ReportsList({
                     : "Nenhuma atividade registrada neste mês ainda."}
                 </p>
               ) : (
-                <div className="flex flex-col gap-3">
-                  {MONTH_DETAIL_FIELDS.map(({ name, label }) =>
-                    selected.report?.[name] ? (
-                      <div key={name}>
-                        <p className="text-xs text-muted-foreground">{label}</p>
-                        <p className="text-sm whitespace-pre-wrap text-foreground">
-                          {selected.report[name]}
-                        </p>
-                      </div>
-                    ) : null
-                  )}
-
-                  {selected.attachments.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3 border-t pt-3 sm:grid-cols-3">
-                      {selected.attachments.map((attachment) => (
-                        <div key={attachment.id} className="flex flex-col gap-1.5">
-                          {attachment.imageUrl && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={attachment.imageUrl}
-                              alt=""
-                              className="aspect-square w-full rounded-lg object-cover"
-                            />
-                          )}
-                          {attachment.caption && (
-                            <p className="text-xs text-muted-foreground whitespace-pre-wrap">
-                              {attachment.caption}
-                            </p>
-                          )}
+                <div className="flex flex-col gap-4">
+                  <section>
+                    <h3 className="text-sm font-medium text-foreground">
+                      Resumo do mês
+                    </h3>
+                    <dl className="mt-2 flex flex-col gap-2">
+                      {MONTH_DETAIL_FIELDS.map(({ name, label }) => (
+                        <div key={name}>
+                          <dt className="text-xs text-muted-foreground">{label}</dt>
+                          <dd
+                            className={cn(
+                              "text-sm whitespace-pre-wrap",
+                              selected.report?.[name]
+                                ? "text-foreground"
+                                : "text-muted-foreground italic"
+                            )}
+                          >
+                            {selected.report?.[name] || "Não preenchido"}
+                          </dd>
                         </div>
                       ))}
-                    </div>
-                  )}
+                    </dl>
+                  </section>
 
-                  <div className="flex flex-col gap-3 border-t pt-3">
-                    {selected.entries.map((entry) => (
-                      <div key={entry.id}>
-                        <p className="text-xs font-medium text-foreground">
-                          Dia {formatDay(entry.entry_date)}
-                        </p>
-                        <dl className="mt-1 flex flex-col gap-1">
-                          {FIELDS.map(({ name, label }) =>
-                            entry[name] ? (
-                              <div key={name}>
-                                <dt className="text-xs text-muted-foreground">
-                                  {label}
-                                </dt>
-                                <dd className="text-sm whitespace-pre-wrap text-foreground">
-                                  {entry[name]}
-                                </dd>
-                              </div>
-                            ) : null
-                          )}
-                        </dl>
+                  <section className="border-t pt-3">
+                    <h3 className="text-sm font-medium text-foreground">
+                      Imagens do mês
+                    </h3>
+                    {selected.attachments.length > 0 ? (
+                      <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {selected.attachments.map((attachment) => (
+                          <div key={attachment.id} className="flex flex-col gap-1.5">
+                            {attachment.imageUrl && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={attachment.imageUrl}
+                                alt=""
+                                className="aspect-square w-full rounded-lg object-cover"
+                              />
+                            )}
+                            {attachment.caption && (
+                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                {attachment.caption}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    {!selected.entries.length && (
-                      <p className="text-sm text-muted-foreground">
+                    ) : (
+                      <p className="mt-2 text-sm text-muted-foreground italic">
+                        Nenhuma imagem anexada neste mês.
+                      </p>
+                    )}
+                  </section>
+
+                  <section className="border-t pt-3">
+                    <h3 className="text-sm font-medium text-foreground">
+                      Dias preenchidos
+                    </h3>
+                    {selected.entries.length > 0 ? (
+                      <div className="mt-2 flex flex-col gap-3">
+                        {selected.entries.map((entry) => (
+                          <div key={entry.id}>
+                            <p className="text-xs font-medium text-foreground">
+                              Dia {formatDay(entry.entry_date)}
+                            </p>
+                            <dl className="mt-1 flex flex-col gap-1">
+                              {FIELDS.map(({ name, label }) => (
+                                <div key={name}>
+                                  <dt className="text-xs text-muted-foreground">
+                                    {label}
+                                  </dt>
+                                  <dd
+                                    className={cn(
+                                      "text-sm whitespace-pre-wrap",
+                                      entry[name]
+                                        ? "text-foreground"
+                                        : "text-muted-foreground italic"
+                                    )}
+                                  >
+                                    {entry[name] || "Não preenchido"}
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-muted-foreground italic">
                         Nenhum dia preenchido neste mês.
                       </p>
                     )}
-                  </div>
+                  </section>
                 </div>
               )}
             </>
